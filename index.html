@@ -1,0 +1,129 @@
+<!DOCTYPE html> 
+<html> 
+	<head> 
+	<title>mytwitfacetube</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+	<!-- Styles -->
+	<link href="css/bootstrap.min.css" rel="stylesheet">
+	<style>
+	body {
+		padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+	}
+	</style>
+	<link href="css/bootstrap-responsive.min.css" rel="stylesheet">
+	<!-- Scripts -->
+	<script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.8.1.min.js"></script>
+	<script src="js/bootstrap.min.js"></script>
+	<script src="http://ajax.aspnetcdn.com/ajax/knockout/knockout-2.1.0.js"></script>	
+</head> 
+<body> 
+<!-- Navbar -->
+	<div class="navbar navbar-inverse navbar-fixed-top">
+		<div class="navbar-inner">
+			<div class="container">
+				<a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</a>
+				<a class="brand" href="#"><%= title %></a>
+				<div class="nav-collapse collapse">
+					<ul class="nav">
+						<li><a href="#">Twitter</a></li>
+						<li><a href="#">YouTube</a></li>
+						<li><a href="#">SoundCloud</a></li>
+					</ul>
+				</div><!--/.nav-collapse -->
+			</div>
+		</div>
+	</div>
+	<!-- /Navbar -->
+	<div class="container">
+		<div data-role="content" data-bind="foreach: itemRows">	
+			<div class="row-fluid" data-bind="foreach: $data">
+				<span class="span3"><a data-bind="attr: { href: url, title: title }"><img data-bind="attr: { src: thumbnailUrl }">
+					<h3 data-bind="text:title"></h3>
+					<p data-bind="text:text"></p>
+				</a></span>
+			</div>		
+		</div><!-- /content -->
+	</div>
+	<script type="text/javascript">
+		// Class to represent a news item
+		var newsItem = function(url, title, headline, imageUrl, thumbnailUrl, text, time){
+			this.url = url;
+			this.title = title;
+			this.headline = headline;
+			this.imageUrl = imageUrl;
+			this.thumbnailUrl = thumbnailUrl;
+			this.text = text;
+			this.time = new Date(time);
+			this.timeStamp = this.time.getTime();
+		}
+
+		// Overall viewmodel for this screen, along with initial state
+		function appViewModel() {
+			var _this = this;
+
+			// Data
+			_this.newsItems = ko.observableArray([]);
+
+			_this.itemRows = ko.computed(function() {
+			    var items = _this.newsItems();
+			    var result = [];
+			    for (var i = 0; i < items.length; i += 4) {
+			        var row = [];
+			        for (var j = 0; j < 4; ++j) {
+			            if (items[i + j]) {
+			                row.push(items[i + j]);
+			            }
+			        }
+			        result.push(row);
+			    }
+			    return result;
+			});
+
+
+			// Behaviours
+			this.refresh = function(){
+
+				// Sort the news items - This is in the wrong place
+				this.newsItems.sort(function(item1, item2){
+					return item2.timeStamp() - item1.timeStamp();
+				});				
+			}
+		};
+
+		$(function() {
+			var viewModel = new appViewModel();
+
+			$.getJSON("http://twitter.com/status/user_timeline/ninjatunehq.json?&callback=?", function(data){
+				// Create a new newsItem for every result from twitter
+				$.each(data, function(key, value){
+					viewModel.newsItems.push(new newsItem(value.source, value.text, value.text, value.user.profile_image_url, value.user.profile_image_url, value.text, value.created_at));
+				});			
+				viewModel.refresh();				
+			});
+
+
+			$.getJSON("http://gdata.youtube.com/feeds/api/users/ninja000/uploads?v=2&alt=jsonc", function(data){
+				$.each(data.data.items, function(key, value){
+					viewModel.newsItems.push(new newsItem(value.player.default, value.title, value.title, value.thumbnail.hqDefault, value.thumbnail.sqDefault, value.title, value.updated));
+				});
+				viewModel.refresh();
+			});
+
+			$.getJSON('https://api.soundcloud.com/users/ninja-tune/tracks.json?client_id=0f09d82872276292dad27414f7d88531', function(tracks) {
+			  	$.each(tracks, function(key, value){
+			    	viewModel.newsItems.push(new newsItem(value.permalink_url, value.title, value.title, value.artwork_url, value.artwork_url, value.description, value.created_at));
+			  	});
+			  	viewModel.refresh();
+			});
+
+			ko.applyBindings(viewModel);			
+		});
+
+	
+	</script>
+</body>
+</html>
