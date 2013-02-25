@@ -1,0 +1,26 @@
+﻿html {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 400;
+}
+
+.item {
+    margin: 0 0 5px 0;
+    padding: 0;
+    border-top: 5px dotted black;
+    cursor: pointer;
+}
+
+.item .timestamp {
+    font-size: 60%;
+    margin-top: 0;
+}
+
+.item img {
+    float: left;
+    margin-top: 5px;
+    margin-right: 5px;
+}
+
+h2 {
+    margin: 0px;
+}
