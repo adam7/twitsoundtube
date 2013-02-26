@@ -10,15 +10,21 @@
     cursor: pointer;
 }
 
-.item .timestamp {
+div.item .timestamp {
     font-size: 60%;
     margin-top: 0;
+    margin-bottom: 0;
 }
 
-.item img {
+div.item img {
     float: left;
     margin-top: 5px;
     margin-right: 5px;
+}
+
+div.item p {
+    margin-top: 5px;
+    font-size: 80%;
 }
 
 h2 {

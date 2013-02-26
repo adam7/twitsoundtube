@@ -1,15 +1,12 @@
 ﻿/// <reference path="jquery-1.9.1.js" />
 
 // Class to represent a news item
-var newsItem = function (url, title, details, imageUrl, thumbnailUrl, time, columnSize) {
+var newsItem = function (url, title, details, imageUrl, time, columnSize) {
     var _this = this;
 
     _this.url = url;
     _this.title = title;
     _this.imageUrl = imageUrl;
-    _this.thumbnailUrl = thumbnailUrl;
-
-    // TODO: IE can't handle twitter's date format, need to fix that
     _this.time = new Date(time);
     _this.localTime = _this.time.toLocaleString();
     _this.columnSize = columnSize;
@@ -30,6 +27,7 @@ var newsItem = function (url, title, details, imageUrl, thumbnailUrl, time, colu
 function appViewModel() {
     var _this = this;
 
+    // Specify user ids to be queried
     _this.twitterIds = ["ninjatunehq"];
     _this.youTubeIds = ["ninja000"];
     _this.soundCloudIds = ["ninja-tune"];
@@ -40,16 +38,23 @@ function appViewModel() {
 
     _this.twitterIds.forEach(function (id) {
         _this.pendingCallbacks++;
+
         $.getJSON("https://api.twitter.com/1/statuses/user_timeline.json?screen_name=" + id + "&include_rts=true&count=40&callback=?", function (data) {
             $.each(data, function (key, value) {
+                var createdAt = value.created_at;
+
+                // IE can't handle twitter's date format, so we hack it up a bit
+                // this probably doesn't take into account international time offfsets TODO: Fix
+                if (new Date(createdAt) == "Invalid Date") {
+                    createdAt = createdAt.replace(/\+\d{4}\s/, "");
+                }
                 _this.newsItems.push(new newsItem(
                     "http://twitter.com/" + id,
                     "",
                     value.text,
                     value.user.profile_image_url,
-                    value.user.profile_image_url,
-                    value.created_at,
-                    "240px"));
+                    createdAt,
+                    "160px"));
             });
             _this.callbackComplete();
         });
@@ -58,19 +63,18 @@ function appViewModel() {
     _this.youTubeIds.forEach(function (id) {
         _this.pendingCallbacks++;
 
-        $.getJSON("http://gdata.youtube.com/feeds/api/users/ninja000/uploads?v=2&alt=jsonc", function (data) {
+        $.getJSON("http://gdata.youtube.com/feeds/api/users/" + id + "/uploads?v=2&alt=jsonc", function (data) {
             $.each(data.data.items, function (key, value) {
                 _this.newsItems.push(new newsItem(
                     value.player.default,
                     value.title,
                     value.description,
                     value.thumbnail.hqDefault,
-                    value.thumbnail.hqDefault,
-                    value.updated,
+                    value.uploaded,
                     "480px"));
             });
             _this.callbackComplete();
-        });       
+        });
     });
 
     _this.soundCloudIds.forEach(function (id) {
@@ -83,34 +87,32 @@ function appViewModel() {
                     value.title,
                     value.description,
                     value.artwork_url,
-                    value.artwork_url,
-                    value.created_at, "480px"));
+                    value.created_at,
+                    "320px"));
             });
             _this.callbackComplete();
         });
     });
 
     _this.callbackComplete = function () {
-        if (_this.pendingCallbacks == 1) {
-            console.log("Sorting and masonry");
+        _this.pendingCallbacks--;
 
+        // If all the callbacks are complete
+        if (_this.pendingCallbacks == 0) {
             // Sort the news items
             _this.newsItems.sort(function (item1, item2) {
                 return item1.time < item2.time ? 1 : item1.time > item2.time ? -1 : 0;
             });
 
-            // Apply Masonry
+            // Apply Masonry (waiting until images have been loaded)
             var $container = $('#container');
             $container.imagesLoaded(function () {
                 $container.masonry({
                     itemSelector: '.item',
-                    columnWidth: 240,
+                    columnWidth: 160,
                     gutterWidth: 10
                 });
             });
-        } else {
-            _this.pendingCallbacks--;
         }
-        console.log(_this.pendingCallbacks);
     };
 };
