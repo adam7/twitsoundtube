@@ -13,6 +13,39 @@
 </head>
 <body>
     <h1>Ninja Tune TwitSoundTube</h1>
+    <a href="#" data-bind="click: $root.sources.show">Edit</a>
+    <div id="sources">
+        <h2>Sources</h2>
+        <div>
+            <div class="source">
+                <h3>Twitter</h3>
+                <ul data-bind="foreach: sources.twitterIds">
+                    <li>
+                        <input type="text" data-bind="value: $data" /><a href="#" data-bind="click: $root.sources.removeTwitter">Remove</a></li>
+                </ul>
+                <button data-bind="click: $root.sources.addTwitter">Add Twitter</button>
+            </div>
+            <div class="source">
+                <h3>SoundCloud</h3>
+                <ul data-bind="foreach: sources.soundCloudIds">
+                    <li>
+                        <input type="text" data-bind="value: $data" /><a href="#" data-bind="click: $root.sources.removeSoundCloud">Remove</a></li>
+                </ul>
+                <button data-bind="click: $root.sources.addSoundCloud">Add SoundCloud</button>
+            </div>
+            <div class="source">
+                <h3>YouTube</h3>
+                <ul data-bind="foreach: sources.youTubeIds">
+                    <li>
+                        <input type="text" data-bind="value: $data" /><a href="#" data-bind="click: $root.sources.removeYouTube">Remove</a></li>
+                </ul>
+                <button data-bind="click: $root.sources.addYouTube">Add YouTube</button>
+            </div>
+            <div id="save" data-bind="click: $root.sources.save">
+                <button>Save sources</button>
+            </div>
+        </div>
+    </div>
     <div id="container" data-bind="foreach: newsItems">
         <div class="item" data-bind="style: { width: columnSize }, click: clicked">
             <h2 data-bind="text:title"></h2>
