@@ -12,8 +12,8 @@
     <script src="Scripts/app.js"></script>
 </head>
 <body>
+    <a id="edit" href="#" data-bind="click: editConfig" style="float:right;">Edit</a>
     <h1 data-bind="text: config.title">Ninja Tune TwitSoundTube</h1>
-    <a href="#" data-bind="click: editConfig">Edit</a>
     <div id="sources">
         <h2>Config</h2>
         <span>Title</span>&nbsp;<input type="text" data-bind="value: config.title" />

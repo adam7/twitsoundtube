@@ -24,12 +24,13 @@ var newsItem = function (url, title, details, imageUrl, time, columnSize) {
 };
 
 // Class to represent a news source
-var source = function (name, url, mappingFunction) {
+var source = function (name, url, mappingFunction, defaultIds) {
     var _this = this;
 
     _this.name = name;
     _this.url = url;
     _this.mappingFunction = mappingFunction;
+    _this.defaultIds = defaultIds;
     _this.ids = ko.observableArray();
     _this.idToAdd = ko.observable("");
 
@@ -64,7 +65,8 @@ var config = function () {
                         value.uploaded,
                         "480px"));
                 });
-            }),
+            },
+            ["ninja000"]),
         new source(
             "Twitter",
             "https://api.twitter.com/1/statuses/user_timeline.json?screen_name={id}&include_rts=true&count=40&callback=?",
@@ -85,7 +87,8 @@ var config = function () {
                         createdAt,
                         "160px"));
                 });
-            }),
+            },
+            ["ninjatunehq"]),
         new source(
             "SoundCloud",
             "https://api.soundcloud.com/users/{id}/tracks.json?client_id=0f09d82872276292dad27414f7d88531",
@@ -99,7 +102,8 @@ var config = function () {
                         value.created_at,
                         "320px"));
                 });
-            })
+            },
+            ["ninja-tune"])
     ];
 
     _this.save = function () {
@@ -130,12 +134,14 @@ var config = function () {
 // Overall viewmodel for this screen, along with initial state
 function appViewModel() {
     var _this = this;
+    var $container = $('#container');
 
-    _this.newsItems = ko.observableArray([]);
+    _this.newsItems = ko.observableArray();
     _this.pendingCallbacks = 0;
     _this.config = new config();
 
     _this.callbackComplete = function () {
+        console.log("Pending callbacks:" + _this.pendingCallbacks);
         _this.pendingCallbacks--;
         // If all the callbacks are complete
         if (_this.pendingCallbacks == 0) {
@@ -145,12 +151,13 @@ function appViewModel() {
             });
 
             // Apply Masonry (waiting until images have been loaded)
-            var $container = $('#container');
             $container.imagesLoaded(function () {
+                console.log("Calling masonry");
                 $container.masonry({
                     itemSelector: '.item',
                     columnWidth: 160,
-                    gutterWidth: 10
+                    gutterWidth: 20,
+                    isFitWidth: true
                 });
             });
         }
@@ -159,6 +166,7 @@ function appViewModel() {
     _this.saveConfig = function () {
         _this.config.save();
         $("#sources").slideUp();
+        $container.masonry('destroy');
         _this.init();
     };
 
@@ -167,7 +175,18 @@ function appViewModel() {
     };
 
     _this.init = function () {
+        _this.newsItems([]);
+        _this.pendingCallbacks = 0;
+
         _this.config.load();
+
+        if (_this.config.title() == "null") {
+            // There's nothing in local storage so use the defaults
+            _this.config.sources.forEach(function (newsSource) {
+                newsSource.ids(newsSource.defaultIds);
+            });
+            _this.config.title("Using default sources, click edit to change them and this title ... ");
+        }
 
         // Loop through each of the sources
         _this.config.sources.forEach(function (newsSource) {
@@ -181,14 +200,5 @@ function appViewModel() {
                 });
             });
         });
-
-        // If there aren't any sources then show a welcome message and set some defaults
-        //if (_this.twitterIds().length == 0 && _this.youTubeIds().length == 0 && _this.soundCloudIds().length == 0) {
-        //    alert("Looks like you haven't set up any sources, don't worry I've added Ninja Tune as a default, click edit if you want to change your sources");
-
-        //    _this.twitterIds.push("ninjatunehq");
-        //    _this.youTubeIds.push("ninja000");
-        //    _this.soundCloudIds.push("ninja-tune");
-        //}
     };
 }
