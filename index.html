@@ -12,38 +12,24 @@
     <script src="Scripts/app.js"></script>
 </head>
 <body>
-    <h1>Ninja Tune TwitSoundTube</h1>
-    <a href="#" data-bind="click: $root.sources.show">Edit</a>
+    <h1 data-bind="text: config.title">Ninja Tune TwitSoundTube</h1>
+    <a href="#" data-bind="click: editConfig">Edit</a>
     <div id="sources">
-        <h2>Sources</h2>
-        <div>
+        <h2>Config</h2>
+        <span>Title</span>&nbsp;<input type="text" data-bind="value: config.title" />
+        <div data-bind="foreach: config.sources">
             <div class="source">
-                <h3>Twitter</h3>
-                <ul data-bind="foreach: sources.twitterIds">
+                <h3 data-bind="text: name"></h3>
+                <ul data-bind="foreach: ids">
                     <li>
-                        <input type="text" data-bind="value: $data" /><a href="#" data-bind="click: $root.sources.removeTwitter">Remove</a></li>
+                        <span data-bind="text: $data"></span>&nbsp;<a href="#" data-bind="click: $parent.removeId">Remove</a></li>
                 </ul>
-                <button data-bind="click: $root.sources.addTwitter">Add Twitter</button>
+                <input type="text" data-bind='value: idToAdd, valueUpdate: "afterkeydown"'  />
+                <button data-bind="click: addId, enable: idToAdd().length > 0">Add</button>
             </div>
-            <div class="source">
-                <h3>SoundCloud</h3>
-                <ul data-bind="foreach: sources.soundCloudIds">
-                    <li>
-                        <input type="text" data-bind="value: $data" /><a href="#" data-bind="click: $root.sources.removeSoundCloud">Remove</a></li>
-                </ul>
-                <button data-bind="click: $root.sources.addSoundCloud">Add SoundCloud</button>
-            </div>
-            <div class="source">
-                <h3>YouTube</h3>
-                <ul data-bind="foreach: sources.youTubeIds">
-                    <li>
-                        <input type="text" data-bind="value: $data" /><a href="#" data-bind="click: $root.sources.removeYouTube">Remove</a></li>
-                </ul>
-                <button data-bind="click: $root.sources.addYouTube">Add YouTube</button>
-            </div>
-            <div id="save" data-bind="click: $root.sources.save">
-                <button>Save sources</button>
-            </div>
+        </div>
+        <div id="save" data-bind="click: $root.saveConfig">
+            <button>Save sources</button>
         </div>
     </div>
     <div id="container" data-bind="foreach: newsItems">
@@ -58,6 +44,7 @@
         var viewModel = new appViewModel();
 
         $(function () {
+            viewModel.init();
             ko.applyBindings(viewModel);
         });
     </script>
